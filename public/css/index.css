@@ -1,0 +1,66 @@
+.examples{
+	background-color: #27272B;
+	min-height: 50%;
+}
+
+.landing-image{
+	background-color: #0099FF;
+}
+
+.display{
+	background-color: #27272B;
+	min-height: 50%;
+}
+
+#main{
+	min-height: 50%;
+}
+
+h1 {
+	font-size: 150px;
+	color: white;
+}
+
+.highlight-it img{
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+	-moz-opacity: 0.5;
+	opacity: 0.5;
+}
+
+.highlight-it:hover img{
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=100);
+	-moz-opacity: 1;
+	opacity: 1;
+}
+
+
+.tint {
+	position: relative;
+	float: left;
+	cursor: pointer;
+}
+
+.tint:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: none;
+/*	background: rgba(0, 153, 255, 0.5);
+	-moz-transition: background .3s linear;
+	-webkit-transition: background .3s linear;
+	-o-transition: background .3s linear;
+	transition: background .3s linear;*/
+}
+
+.tint:hover:before {
+	/*background: none;*/
+	background: rgba(0, 153, 255, 0.5);
+	-moz-transition: background .3s linear;
+	-webkit-transition: background .3s linear;
+	-o-transition: background .3s linear;
+	transition: background .3s linear;
+}

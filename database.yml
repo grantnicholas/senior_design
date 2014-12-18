@@ -1,0 +1,8 @@
+development:
+  adapter: postgresql
+  database: bme_data
+  # username: <%= ENV['PG_USER'] %>
+  # password: <%= ENV['PG_PASS'] %>
+  username: grant
+  password: password
+  host: 

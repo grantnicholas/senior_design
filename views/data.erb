@@ -1,0 +1,52 @@
+<section class="display">
+<div class="row">
+	<div class="small-centered large-centered">
+		<h1><%= @machine %></h1>
+	</div>
+</div>
+
+</section>
+
+<section>
+
+
+<div class="row">
+<button href="#" data-dropdown="drop1" aria-controls="drop1" aria-expanded="false" class="button dropdown small-centered large-centered">Choose a machine</button><br>
+<ul id="drop1" data-dropdown-content class="f-dropdown" aria-hidden="true" tabindex="-1">
+    <% @dropdown.each do |op| %>
+  	<li><a href=<%= '/machines/'+op.type.downcase %> > <%= op.type %> </a></li>
+  <% end %>
+</ul>
+</div>
+
+
+<% if @count %>
+<div class="row">
+	<div class="small-centered large-centered">
+	<table class="small-centered large-centered">
+	<thead>
+		<tr>
+			<th>Count</th>
+			<th>Time in use [s]</th>
+		</tr>
+	</thead>
+	<tr>
+		<td><%= @count %></td>
+		<td><%= @timetotal %></td>
+	</tr>
+	</table>
+	</div>
+</div>
+<% end %>
+
+<div class="row">
+<ul class="small-block-grid-1 large-block-grid-2">
+	<% @images.each do |img| %>
+		<li class="tint"><img class="highlight-it" src= <%= img %> class="small-centered large-centered highlight-it"> </img></li>
+	<% end %>
+</ul>
+</div>
+
+
+
+</section>

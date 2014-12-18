@@ -1,0 +1,18 @@
+<h3>All Models</h3>
+<ul>
+<% @models.each do |model| %>
+	<li>
+		<%= model.time %>
+	</li>
+	<li>
+		<%= model.xdata %>
+	</li>
+	<li>
+		<%= model.ydata %>
+	</li>
+	<li>
+		<%= model.zdata %>
+	</li>
+<% end %>
+</ul>
+<a href="/">Back to Home</a>
