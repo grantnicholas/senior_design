@@ -1,6 +1,29 @@
-<h3>Login</h3>
-<form action="/" method="POST">
-	<input type="email" name="model[email]" value="Email" />
-	<input type="password" name="model[password]" value="Password" />
-	<input type="submit" value="Submit" />
-</form>
+<section>
+	<div class="row small-centered large-centered">
+		<% if @error %>
+		<div class="button alert "> <%= @message %> </div>
+		<% else %>
+		<div class="button success "> <%= @message %> </div>
+		<% end %>
+		<ul class="small-block-grid-2 large-block-grid-2">
+			<li>
+				<form action="/login" method="POST">
+					<span class="label">Login </span> 
+					<input type="email" name="email" placeholder="Email" />
+					<input type="password" name="password" placeholder="Password"/>
+					<input class="label" type="submit" value="Submit" />
+				</form>
+			</li>
+
+			<li>
+				<form action="/register" method="POST">
+					<span class="label"> Register </span>
+					<input type="email" name="email" placeholder="Email" />
+					<input type="password" name="password" placeholder="password"/>
+					<input class="label" type="submit" value="Submit" />
+				</form>
+			</li>
+		</ul>
+
+	</div>
+</section>

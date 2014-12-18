@@ -1,9 +1,10 @@
 require 'sinatra'
 require 'sinatra/activerecord'
 require './config/environments'
-require './models/machine'
+require './models/models'
 require 'gchart'
 require 'csv'
+require 'bcrypt'
 
 enable :sessions
 
@@ -73,8 +74,49 @@ end
 
 get '/login' do 
 	# erb :login, :layout => :login_layout
+	@error   = false
+	@message = "Please login or register"
 	erb :login
 end
+
+post '/register' do 
+	@user = User.new
+	puts params[:email]
+	puts params[:password]
+
+	@user.email = params[:email]
+	@user.set_password(params[:password])
+	if @user.save
+		puts "worked"
+		@message = "Account created: please login"
+		@error = false 
+		erb :login
+	else
+		puts "fuck didnt work"
+		@message = "Unsuccessful account creation: try again"
+		@error = true
+		erb :login
+	end
+
+end
+
+post '/login' do 
+	@user = User.find_by_email(params[:email])
+	if !@user
+		@error = true
+		@message = "Incorrect username"
+		erb :login
+
+	elsif @user.check_password(params[:password])
+		session[:user] = params[:email]
+		redirect '/machines'
+	else
+		@error = true
+		@message = "Incorrect login information"
+		erb :login
+	end
+end
+
 
 get '/test' do 
 	erb :test

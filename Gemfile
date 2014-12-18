@@ -6,4 +6,5 @@ gem 'activerecord'
 gem 'sinatra-activerecord'
 gem 'shotgun'
 gem 'googlecharts'
+gem 'bcrypt'
 
