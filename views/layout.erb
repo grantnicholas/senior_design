@@ -3,9 +3,12 @@
 <head>
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript" src="/js/chartkick.js"></script>
   <script type="text/javascript" src="/js/barchart.js"></script>
   <script type="text/javascript" src="/js/foundation.min.js"></script>
-    <script type="text/javascript" src="/js/foundation/foundation.dropdown.js"></script>
+  <script type="text/javascript" src="/js/foundation/foundation.dropdown.js"></script>
+  <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['table']}]}"></script>
+
   <link rel="stylesheet" href="/css/foundation.css">
   <link rel="stylesheet" href="/css/index.css">
 </head>
@@ -25,13 +28,13 @@
     <!-- Right Nav Section -->
     <ul class="right">
       <li class="active"><a href="/machines">Machine usage</a></li>
-      <li class="has-dropdown"><a href="/login">Login or register</a>
+      <li class="has-dropdown"><a href="/login" id="login-logout">Login/Logout</a>
     </ul>
 
     <!-- Left Nav Section -->
-    <ul class="left">
+<!--     <ul class="left">
       <li><a href="#">Left Nav Button</a></li>
-    </ul>
+    </ul> -->
   </section>
 </nav>
 </div>

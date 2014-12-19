@@ -1,4 +1,4 @@
-# Senior design project team kietikloud
+# Senior design project team kinetikloud
 
 ## 12-18
 
