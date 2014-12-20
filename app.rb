@@ -7,6 +7,7 @@ require 'csv'
 require 'bcrypt'
 require 'chartkick'
 require 'google_visualr'
+load 'Gtable.rb'
 
 
 class Public < Sinatra::Base
@@ -169,48 +170,23 @@ class Protected < Sinatra::Base
 			# 	])
 			# option = { width: 400, height: 240, title: 'Company Performance' }
   	# 		@chart = GoogleVisualr::Interactive::AreaChart.new(data_table, option)
+  			@table = helper_table
 
 			erb :data
 		end
 	end
 
+
 	get '/machines' do 
-		types = Machine.select('DISTINCT type')
-		@data_arr = []
-		types.each do |machine|
-			name = machine.type
-			dat = Machine.all.where({ type: name}).order('time ASC')
-			count,time = process_data(get_vars(dat))
-			tmp = [name, count, time]
-			@data_arr.push(tmp)
-		end
-
-
-		@table = Gtable.new
-		@table.add_column('string', 'Machine')
-		@table.add_column('number', 'Count')
-		@table.add_column('number', 'Time in use')
-		@table.set_cssid('table_div')
-		@table.add_rows(@data_arr)
-
-		puts @table
-		p @table
-		@table.inspect
-		p @table.rows.to_json
-
+		@table = helper_table
+		@images = helper_images
 		@machine = "machines"
-		@images = []
-		Dir.glob('public/img/machines/*.jpg') do |file|
-			re = /public\/(\S+)/
-			match = file.match(re)
- 	 		@images.push(match[1])
-		end
-		@dropdown = types
+		@dropdown = Machine.select('DISTINCT type')
 		erb :data
 	end
 
 
-	get '/protected/test' do 
+	get '/test' do 
 		erb :test
 	end
 
@@ -231,6 +207,7 @@ class Protected < Sinatra::Base
 					@model.xdata = row[1]
 					@model.ydata = row[2]
 					@model.zdata = row[3]
+					@model.date  = params[:model][:date]
 					@model.save
 				end
 
@@ -240,6 +217,7 @@ class Protected < Sinatra::Base
 					@model.xdata = row[1]
 					@model.ydata = row[2]
 					@model.zdata = row[3]
+					@model.date  = params[:model][:date]
 					@model.save
 				end
 
@@ -324,48 +302,55 @@ class Protected < Sinatra::Base
 	end
 
 
-	class Gtable
-		def initialize()	
-			@columns = []
-			@rows    = []
-			@id      = []
-			@show_num  =true
+	def helper_table 
+		@data_arr = []
+		types = Machine.select('DISTINCT type')
+		types.each do |machine|
+			name = machine.type
+			dat = Machine.all.where({ type: name}).order('time ASC')
+			count,time = process_data(get_vars(dat))
+			tmp = [name, count, time]
+			@data_arr.push(tmp)
 		end
 
-		def add_column(type,name)
-			arr = [type,name]
-			@columns.push(arr)
-		end
+		@table = Gtable.new
+		@table.add_column('string', 'Machine')
+		@table.add_column('number', 'Count')
+		@table.add_column('number', 'Time in use')
+		@table.set_cssid('table_div')
+		@table.add_rows(@data_arr)
 
-		def add_rows(arr)
-			@rows = arr
-		end
-
-		def set_cssid(id)
-			@id = id
-		end
-
-		def show_rownum(bool)
-			@show_num = bool
-		end
-
-		def columns
-			return @columns
-		end
-
-		def rows
-			return @rows
-		end
-
-		def id
-			return @id
-		end
-
-		def show_num
-			return @show_num
-		end
-
+		return @table
 	end
+
+	def helper_images
+		@images = []
+		Dir.glob('public/img/machines/*.jpg') do |file|
+			re = /public\/(\S+)/
+			match = file.match(re)
+ 	 		@images.push(match[1])
+		end
+		return @images
+	end
+
+	# def bar_chart_machine(type)
+	# 	@data_arr = []
+	# 	types.each do |machine|
+	# 		name = machine.type
+	# 		dat = Machine.all.where({ type: name}).order('time ASC')
+	# 		count,time = process_data(get_vars(dat))
+	# 		tmp = [name, count, time]
+	# 		@data_arr.push(tmp)
+	# 	end
+
+	# 	@table = Gtable.new
+	# 	@table.add_column('string', 'Machine')
+	# 	@table.add_column('number', 'Count')
+	# 	@table.add_column('number', 'Time in use')
+	# 	@table.set_cssid('table_div')
+	# 	@table.add_rows(@data_arr)
+
+	# 	return @table
 
 
 

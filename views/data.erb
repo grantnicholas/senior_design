@@ -1,4 +1,5 @@
 <div>  
+  <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['table']}]}"></script>
   <script type="text/javascript">
       google.setOnLoadCallback(drawTable);
 
@@ -20,6 +21,38 @@
       }
 
   </script>
+
+ //  <script type="text/javascript">
+	// google.load("visualization", "1", {packages:["corechart"]});
+	// google.setOnLoadCallback(drawChart);
+
+	// function drawChart() {
+
+	//   var data = new google.visualization.DataTable();
+	//   var cols = <%= @table.columns.to_json %>
+	//   for(var i=0; i<cols.length; i++){
+	//   	data.addColumn(cols[i][0], cols[i][1]);
+	//   }
+	//   data.addRows( <% @table.rows.to_json %> );
+
+	//   // data.addColumn('string', 'Year');
+	//   // data.addColumn('number', 'Sales');
+	//   // data.addColumn('number', 'Expenses');
+	//   // data.addRows([['2004', 1000, 400], ['2005', 1170, 460], ['2006', 660, 1120], ['2007', 1030, 540]]);
+	//   // var options = {
+	//   //   title: 'Company Performance',
+	//   //   hAxis: {title: 'Year', titleTextStyle: {color: 'red'}}
+	//   // };
+
+	//   var options = <%= @table.options.to_json %>;
+	//   var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+
+	//   chart.draw(data, options);
+
+	// }
+
+ //    </script>
+    
 </div>
 
 <section class="display">
@@ -44,51 +77,14 @@
 	</div>
 
 
-	<% if @count %>
-	<div class="row">
-		<div class="small-centered large-centered">
-			<table class="small-centered large-centered">
-				<thead>
-					<tr>
-						<th>Count</th>
-						<th>Time in use [s]</th>
-					</tr>
-				</thead>
-				<tr>
-					<td><%= @count %></td>
-					<td><%= @timetotal %></td>
-				</tr>
-			</table>
-		</div>
-	</div>
-	<% end %>
 
-	<% if @data_arr %>
-	<div class="row">
-		<!-- <div class="small-12 large-12 columns small-centered large-centered"> -->
-			<table class="small-12 large-12 columns small-centered large-centered">
-				<thead>
-					<tr>
-						<th>Machine</th>
-						<th>Count</th>
-						<th>Time in use [s]</th>
-					</tr>
-				</thead>
-				<% @data_arr.each do |mach| %>
-				<tr>
-					<% mach.each do |stat| %>
-						<td><%= stat %></td>
-					<% end %>
-				</tr>
-				<% end %>
-			</table>
-		<!-- </div> -->
-	</div>
 
 	<div class="row">
        <div id="table_div"></div>
     </div>
-	<% end %>
+    <div class="row">
+    	<div id="chart_div"></div>
+    </div>
 
 	<div class="row">
 		<ul class="small-block-grid-1 large-block-grid-2">
