@@ -1,13 +1,16 @@
 require 'bcrypt'
 
 class Machine < ActiveRecord::Base
+	def get_category
+		return category
+	end
 end
 
-class Treadmill < Machine
-end
+# class Treadmill < Machine
+# end
 
-class Nustep < Machine
-end
+# class Nustep < Machine
+# end
 
 class User < ActiveRecord::Base
 
@@ -19,4 +22,7 @@ class User < ActiveRecord::Base
 		@password = BCrypt::Password.create(new_password)
 		self.password = @password
 	end
+end
+
+class Memo < ActiveRecord::Base
 end

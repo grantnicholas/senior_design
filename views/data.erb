@@ -22,37 +22,46 @@
 
   </script>
 
- //  <script type="text/javascript">
-	// google.load("visualization", "1", {packages:["corechart"]});
-	// google.setOnLoadCallback(drawChart);
+   <script type="text/javascript">
+	google.load("visualization", "1", {packages:["corechart"]});
+	google.setOnLoadCallback(drawChart);
 
-	// function drawChart() {
+	function drawChart() {
 
-	//   var data = new google.visualization.DataTable();
-	//   var cols = <%= @table.columns.to_json %>
-	//   for(var i=0; i<cols.length; i++){
-	//   	data.addColumn(cols[i][0], cols[i][1]);
-	//   }
-	//   data.addRows( <% @table.rows.to_json %> );
+	  var data = new google.visualization.DataTable();
+	  var cols = <%= @time_table.columns.to_json %>;
+	  for(var i=0; i<cols.length; i++){
+	  	data.addColumn(cols[i][0], cols[i][1]);
+	  }
+	  data.addRows( <%= @time_table.rows.to_json %> );
 
-	//   // data.addColumn('string', 'Year');
-	//   // data.addColumn('number', 'Sales');
-	//   // data.addColumn('number', 'Expenses');
-	//   // data.addRows([['2004', 1000, 400], ['2005', 1170, 460], ['2006', 660, 1120], ['2007', 1030, 540]]);
-	//   // var options = {
-	//   //   title: 'Company Performance',
-	//   //   hAxis: {title: 'Year', titleTextStyle: {color: 'red'}}
-	//   // };
+	  var options = <%= @time_table.options.to_json %>;
+	  var chart = new google.visualization.ColumnChart(document.getElementById(<%= @time_table.id.to_json %>));
 
-	//   var options = <%= @table.options.to_json %>;
-	//   var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+	  chart.draw(data, options);
+	}
+    </script>
 
-	//   chart.draw(data, options);
+    <script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(drawBar);
 
-	// }
+    function drawBar(){
+      var data = new google.visualization.DataTable();
+	  var cols = <%= @count_table.columns.to_json %>;
+	  for(var i=0; i<cols.length; i++){
+	  	data.addColumn(cols[i][0], cols[i][1]);
+	  }
+	  data.addRows( <%= @count_table.rows.to_json %> );
 
- //    </script>
-    
+	  var options = <%= @count_table.options.to_json %>;
+	  var chart = new google.visualization.ColumnChart(document.getElementById(<%= @count_table.id.to_json %>));
+
+	  chart.draw(data, options);
+
+    }
+    </script>
+
 </div>
 
 <section class="display">
@@ -71,7 +80,7 @@
 		<button href="#" data-dropdown="drop1" aria-controls="drop1" aria-expanded="false" class="button dropdown small-centered large-centered">Choose a machine</button><br>
 		<ul id="drop1" data-dropdown-content class="f-dropdown" aria-hidden="true" tabindex="-1">
 			<% @dropdown.each do |op| %>
-			<li><a href=<%= '/machines/'+op.type.downcase %> > <%= op.type %> </a></li>
+			<li><a href=<%= '/machines/'+op.category.downcase %> > <%= op.category %> </a></li>
 			<% end %>
 		</ul>
 	</div>
@@ -85,7 +94,14 @@
     <div class="row">
     	<div id="chart_div"></div>
     </div>
+    <div class="row">
+    	<div id="count_bar"></div>
+    </div>
+    <div class="row">
+    	<div id="time_bar"></div>
+    </div>
 
+    <% if @images %>
 	<div class="row">
 		<ul class="small-block-grid-1 large-block-grid-2">
 			<% @images.each do |img| %>
@@ -93,10 +109,8 @@
 			<% end %>
 		</ul>
 	</div>
+	<% end %>
 
-<!-- 	<div>
-		<%= line_chart @hash, discrete: true %>
-	</div> -->
 
 
 </section>

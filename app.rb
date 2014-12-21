@@ -95,85 +95,74 @@ class Protected < Sinatra::Base
 	end
 
 	get '/machines/:name' do 
-		stuff = 0
-		if params[:name] == "treadmill"
-			stuff = Treadmill.all.order("time ASC")
-		end
-		if params[:name] == "nustep"
-			stuff = Nustep.all.order("time ASC")
-		end
+		# stuff = 0
 
-		if stuff ==0
-			redirect '/machines'
-		else	
-			timedata = []
-			xdata = []
-			ydata = []
-			zdata = []
-			size = []
-			output = {}
-			outarr = []
-			stuff.each do |x|
-				timedata.push(x.time)
-				xdata.push(x.xdata)
-				ydata.push(x.ydata)
-				zdata.push(x.zdata)
-				size.push(2)
-				output[x.time] = x.zdata
-				arr = []
-				arr.push([x.time.to_f,x.zdata.to_f])
-				outarr.push(arr)
-			end
+		# @cats = Machine.select('DISTINCT category')
+		# @cats.each do |t|
+		# 	puts t.get_category
+		# 	puts params[:name].downcase
+		# 	if t.get_category.downcase==params[:name].downcase
+		# 		stuff = Machine.all.where({category: t.get_category}).order("time ASC")
+		# 	end
+		# end
 
-			timedata.each do |t|
-				puts t
-			end
+		# if stuff ==0
+		# 	redirect '/machines'
+		# else	
+		# 	timedata = []
+		# 	xdata = []
+		# 	ydata = []
+		# 	zdata = []
+		# 	size = []
+		# 	output = {}
+		# 	outarr = []
+		# 	stuff.each do |x|
+		# 		timedata.push(x.time)
+		# 		xdata.push(x.xdata)
+		# 		ydata.push(x.ydata)
+		# 		zdata.push(x.zdata)
+		# 		size.push(2)
+		# 		output[x.time] = x.zdata
+		# 		arr = []
+		# 		arr.push([x.time.to_f,x.zdata.to_f])
+		# 		outarr.push(arr)
+		# 	end
 
-			zdata.each do |z|
-				puts z
-			end
 
-			name = :name.to_s
-			filename = '/img/' + name + '.png'
-			mod_filename = 'public/' + filename
+		# 	name = :name.to_s
+			# filename = '/img/' + name + '.png'
+			# mod_filename = 'public/' + filename
 
-			line_chart = Gchart.new(
-		            :type => 'line_xy',
-		            :size => '600x400',
-		            # :line_colors => ['000000', '0088FF', 'FF0000'],
-		            :title => "Treadmill usage",
-		            :bg => 'EFEFEF',
-		            # :legend => ['xdata', 'ydata', 'zdata'],
-		            # :legend_position => 'bottom',
-		            # :data => [[timedata,xdata], [timedata,ydata], [timedata, zdata] ],
-		            :data => [timedata, zdata],
-		            :filename => mod_filename,
-		            :axis_with_labels => [['x'], ['y']]
-		            )
+			# line_chart = Gchart.new(
+		 #            :type => 'line_xy',
+		 #            :size => '600x400',
+		 #            # :line_colors => ['000000', '0088FF', 'FF0000'],
+		 #            :title => "Treadmill usage",
+		 #            :bg => 'EFEFEF',
+		 #            # :legend => ['xdata', 'ydata', 'zdata'],
+		 #            # :legend_position => 'bottom',
+		 #            # :data => [[timedata,xdata], [timedata,ydata], [timedata, zdata] ],
+		 #            :data => [timedata, zdata],
+		 #            :filename => mod_filename,
+		 #            :axis_with_labels => [['x'], ['y']]
+		 #            )
 
-			line_chart.file
+			# line_chart.file
 
-			@count,@timetotal = process_data(get_vars(stuff))
-			@images  = [filename]
+			# @count,@timetotal = process_data(get_vars(stuff))
+
+
+			# @images  = [filename]
 
 			@machine = params[:name]
-			@dropdown = Machine.select('DISTINCT type')
-			# @hash = output
+			@dropdown = Machine.select('DISTINCT category')
 
-			# data_table = GoogleVisualr::DataTable.new
-			# data_table.new_column('number', 'Time [s]')
-			# data_table.new_column('number', 'Acceleration [m/s^2]')
-			# data_table.add_rows([
-			# 	[1,1],
-			# 	[2,2],
-			# 	[10,10]
-			# 	])
-			# option = { width: 400, height: 240, title: 'Company Performance' }
-  	# 		@chart = GoogleVisualr::Interactive::AreaChart.new(data_table, option)
   			@table = helper_table
 
+  			@count_table, @time_table = bar_chart_machine(params[:name].downcase, 'count_bar', 'time_bar')
+
 			erb :data
-		end
+		# end
 	end
 
 
@@ -181,7 +170,7 @@ class Protected < Sinatra::Base
 		@table = helper_table
 		@images = helper_images
 		@machine = "machines"
-		@dropdown = Machine.select('DISTINCT type')
+		@dropdown = Machine.select('DISTINCT category')
 		erb :data
 	end
 
@@ -200,29 +189,52 @@ class Protected < Sinatra::Base
 	post '/process' do 
 		CSV.foreach(params[:file][:tempfile]) do |row|
 			if !row.empty? 
-				puts row.inspect
-				if params[:model][:type] == "treadmill"
-					@model = Treadmill.new
-					@model.time  = row[0]
-					@model.xdata = row[1]
-					@model.ydata = row[2]
-					@model.zdata = row[3]
-					@model.date  = params[:model][:date]
-					@model.save
-				end
-
-				if params[:model][:type] == "nustep"
-					@model = Nustep.new
-					@model.time  = row[0]
-					@model.xdata = row[1]
-					@model.ydata = row[2]
-					@model.zdata = row[3]
-					@model.date  = params[:model][:date]
-					@model.save
-				end
-
+				@model = Machine.new
+				@model.category  = params[:model][:category]
+				@model.time  = row[0]
+				@model.xdata = row[1]
+				@model.ydata = row[2]
+				@model.zdata = row[3]
+				@model.date  = params[:model][:date]
+				@model.save
 			end
 		end
+
+		stuff = 0
+		category = 0
+		@cats = Machine.select('DISTINCT category')
+		@cats.each do |t|
+			puts t.get_category
+			puts params[:model][:category].downcase
+			if t.get_category.downcase==params[:model][:category].downcase
+				category = t.get_category
+				stuff = Machine.all.where({category: t.get_category, date: params[:model][:date]}).order("time ASC")
+			end
+		end
+
+		stuff.each do |s|
+			p s
+		end
+		if stuff == 0
+			redirect '/process'
+		end
+
+		thecount,thetime = process_data(get_vars(stuff))
+
+		if !Memo.exists?({category: category, date: params[:model][:date] }) 
+			m = Memo.new
+			m.category = category
+			m.count = thecount
+			m.time = thetime
+			m.date = params[:model][:date]
+			m.save
+		end
+		# Memo.create({type: type, count: thecount, time: thetime, date: params[:model][:date]})
+
+		# Memo.where({type: type}).update_all("count = count + #{thecount}" )
+		# Memo.where({type: type}).update_all("time = time + #{thetime}" )
+
+
 
 	end
 
@@ -304,10 +316,10 @@ class Protected < Sinatra::Base
 
 	def helper_table 
 		@data_arr = []
-		types = Machine.select('DISTINCT type')
-		types.each do |machine|
-			name = machine.type
-			dat = Machine.all.where({ type: name}).order('time ASC')
+		cats = Machine.select('DISTINCT category')
+		cats.each do |machine|
+			name = machine.category
+			dat = Machine.all.where({ category: name}).order('time ASC')
 			count,time = process_data(get_vars(dat))
 			tmp = [name, count, time]
 			@data_arr.push(tmp)
@@ -333,24 +345,42 @@ class Protected < Sinatra::Base
 		return @images
 	end
 
-	# def bar_chart_machine(type)
-	# 	@data_arr = []
-	# 	types.each do |machine|
-	# 		name = machine.type
-	# 		dat = Machine.all.where({ type: name}).order('time ASC')
-	# 		count,time = process_data(get_vars(dat))
-	# 		tmp = [name, count, time]
-	# 		@data_arr.push(tmp)
-	# 	end
+	def bar_chart_machine(category, c_id, t_id)
+		count_arr = []
+		time_arr = []
+		data = Memo.all.where({category: category}).order('date ASC')
+		data.each do |d|
+			ctmp = [d.date, d.count]
+			ttmp = [d.date, d.time]
+			count_arr.push(ctmp)
+			time_arr.push(ttmp)
+		end
 
-	# 	@table = Gtable.new
-	# 	@table.add_column('string', 'Machine')
-	# 	@table.add_column('number', 'Count')
-	# 	@table.add_column('number', 'Time in use')
-	# 	@table.set_cssid('table_div')
-	# 	@table.add_rows(@data_arr)
+		count_table = Gtable.new
+		count_table.add_column('string', 'Date')
+		count_table.add_column('number', 'Count')
+		count_table.set_cssid(c_id)
+		count_table.add_rows(count_arr)
+		count_table.add_options({
+    		title: category,
+    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
+  		})
 
-	# 	return @table
+  		time_table = Gtable.new
+		time_table.add_column('string', 'Date')
+		time_table.add_column('number', 'Time')
+		time_table.set_cssid(t_id)
+		time_table.add_rows(time_arr)
+		time_table.add_options({
+    		title: category,
+    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
+  		})
+
+
+		return count_table, time_table
+
+
+	end
 
 
 
