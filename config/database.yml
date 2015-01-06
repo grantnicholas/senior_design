@@ -4,3 +4,10 @@ development:
   username: <%= ENV['PG_USER'] %>
   password: <%= ENV['PG_PASS'] %>
   host: localhost
+
+production:
+  adapter: postgressql
+  database: production
+  usernae: <%= ENV['PG_USER'] %>
+  password: <%= ENV['PG_PASS'] %>
+  host: localhost
