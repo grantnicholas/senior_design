@@ -1,66 +1,88 @@
 <div>  
-  <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['table']}]}"></script>
-  <script type="text/javascript">
-      google.setOnLoadCallback(drawTable);
+  <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['table', 'corechart']}]}"></script>
 
-      function drawTable() {
+
+    <div>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+
+      google.load('visualization', '1.0', {'packages':['controls']});
+
+      google.setOnLoadCallback(drawDashboard);
+
+      function drawDashboard() {
+
+
         var data = new google.visualization.DataTable();
-
         var cols = <%= @table.columns.to_json %>;
         for(var i=0; i<cols.length; i++){
-        	data.addColumn(cols[i][0], cols[i][1]);
+          data.addColumn(cols[i][0], cols[i][1]);
         }
-
         data.addRows( <%= @table.rows.to_json %> );
 
-        var table = new google.visualization.Table(document.getElementById(<%= @table.id.to_json %>));
+        var dashboard = new google.visualization.Dashboard(
+            document.getElementById('dashboard_div')
+        );
 
-        var boo = <%= @table.show_num.to_json %>; 
-        var bool = (true === boo); 
-        table.draw(data, {showRowNumber: bool } ) ;
+        var catSlider = new google.visualization.ControlWrapper({
+          // 'controlType': 'NumberRangeFilter',
+          'controlType': 'CategoryFilter',
+          'containerId': 'filtering_div',
+          'options': {
+          	'width': 500,
+          	'height': 500,
+            'filterColumnLabel': 'Machine'
+          }
+        });
+
+        var barChartTime = new google.visualization.ChartWrapper({
+          'chartType': 'ColumnChart',
+          'containerId': 'charting_div_time',
+          'options': {
+            'width': 900,
+            'height': 900,
+            'legend': 'right'
+          },
+          'view': {'columns': [0,3]}
+        });
+
+        var barChartCount = new google.visualization.ChartWrapper({
+          'chartType': 'ColumnChart',
+          'containerId': 'charting_div_count',
+          'options': {
+            'width': 900,
+            'height': 900,
+            'legend': 'right'
+          },
+          'view': {'columns': [0,2]}
+        });
+
+        dashboard.bind(catSlider, barChartTime );
+        dashboard.bind(catSlider, barChartCount);
+
+        dashboard.draw(data);
+
+        $('#charting_div_count').toggle();
+        jQuery('#dashboard_toggle').click(function(){
+          console.log('clicked');
+          jQuery('#charting_div_time').toggle();
+          jQuery('#charting_div_count').toggle();
+        });
+
       }
-
-  </script>
-
-   <script type="text/javascript">
-	google.load("visualization", "1", {packages:["corechart"]});
-	google.setOnLoadCallback(drawChart);
-
-	function drawChart() {
-
-	  var data = new google.visualization.DataTable();
-	  var cols = <%= @time_table.columns.to_json %>;
-	  for(var i=0; i<cols.length; i++){
-	  	data.addColumn(cols[i][0], cols[i][1]);
-	  }
-	  data.addRows( <%= @time_table.rows.to_json %> );
-
-	  var options = <%= @time_table.options.to_json %>;
-	  var chart = new google.visualization.ColumnChart(document.getElementById(<%= @time_table.id.to_json %>));
-
-	  chart.draw(data, options);
-	}
     </script>
+    
+  </div>
 
-    <script type="text/javascript">
-    google.load("visualization", "1", {packages:["corechart"]});
-    google.setOnLoadCallback(drawBar);
 
-    function drawBar(){
-      var data = new google.visualization.DataTable();
-	  var cols = <%= @count_table.columns.to_json %>;
-	  for(var i=0; i<cols.length; i++){
-	  	data.addColumn(cols[i][0], cols[i][1]);
-	  }
-	  data.addRows( <%= @count_table.rows.to_json %> );
 
-	  var options = <%= @count_table.options.to_json %>;
-	  var chart = new google.visualization.ColumnChart(document.getElementById(<%= @count_table.id.to_json %>));
 
-	  chart.draw(data, options);
-
-    }
-    </script>
+   <%= table_chart(@table) %>
+   <% if @machine != "machines" %>
+   <%= bar_chart(@time_table) %>
+   <%= bar_chart(@count_table) %>
+   <% end %>
 
 </div>
 
@@ -79,6 +101,7 @@
 	<div class="row">
 		<button href="#" data-dropdown="drop1" aria-controls="drop1" aria-expanded="false" class="button dropdown small-centered large-centered">Choose a machine</button><br>
 		<ul id="drop1" data-dropdown-content class="f-dropdown" aria-hidden="true" tabindex="-1">
+      <li><a href='/machines'> all machines</a>
 			<% @dropdown.each do |op| %>
 			<li><a href=<%= '/machines/'+op.category.downcase %> > <%= op.category %> </a></li>
 			<% end %>
@@ -102,6 +125,14 @@
     </div>
 
     <% if @images %>
+    <div class="row">
+    	<div id="dashboard_div">
+          <button id="dashboard_toggle">toggle time and count</button>
+      		<div id="filtering_div"></div>
+      		<div id="charting_div_time"></div>
+          <div id="charting_div_count"></div>
+    	</div>
+	</div>
 	<div class="row">
 		<ul class="small-block-grid-1 large-block-grid-2">
 			<% @images.each do |img| %>
@@ -109,6 +140,7 @@
 			<% end %>
 		</ul>
 	</div>
+
 	<% end %>
 
 

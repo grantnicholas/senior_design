@@ -1,0 +1,26 @@
+<div>
+
+  <script type="text/javascript">
+      google.setOnLoadCallback(drawBar);
+
+      function drawBar() {
+        var data = new google.visualization.DataTable();
+
+        var cols = <%= @table.columns.to_json %>;
+        for(var i=0; i<cols.length; i++){
+        	data.addColumn(cols[i][0], cols[i][1]);
+        }
+
+        data.addRows( <%= @table.rows.to_json %> );
+
+        var table = new google.visualization.ColumnChart(document.getElementById(<%= @table.id.to_json %>));
+
+        table.draw(data, <%= @table.options.to_json %> ) ;
+      }
+
+  </script>
+
+
+
+
+</div>

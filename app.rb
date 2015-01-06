@@ -21,6 +21,16 @@ class Public < Sinatra::Base
 		erb :index
 	end
 
+	get '/about' do 
+		erb :about
+	end
+
+	post '/upload' do
+		p params
+		@params = params
+		erb :upload
+	end
+
 	get '/login' do 
 		# erb :login, :layout => :login_layout
 		if session[:user]
@@ -74,6 +84,18 @@ end
 
 class Protected < Sinatra::Base
 
+	helpers do 
+		def table_chart(table)
+			@table = table
+			erb(:_gtable, :layout => false)
+		end
+
+		def bar_chart(table)
+			@table = table
+			erb(:_gbar, :layout => false)
+		end
+	end
+
 	set :root, File.dirname(__FILE__)
 
 	use Public
@@ -95,82 +117,26 @@ class Protected < Sinatra::Base
 	end
 
 	get '/machines/:name' do 
-		# stuff = 0
+		@machine = params[:name]
+		@dropdown = Machine.select('DISTINCT category')
+		options = {showRowNumber: true }
+		@table = helper_table([@machine], 'table_div', options)
+		@count_table, @time_table = bar_chart_machine(params[:name].downcase, 'count_bar', 'time_bar')
 
-		# @cats = Machine.select('DISTINCT category')
-		# @cats.each do |t|
-		# 	puts t.get_category
-		# 	puts params[:name].downcase
-		# 	if t.get_category.downcase==params[:name].downcase
-		# 		stuff = Machine.all.where({category: t.get_category}).order("time ASC")
-		# 	end
-		# end
-
-		# if stuff ==0
-		# 	redirect '/machines'
-		# else	
-		# 	timedata = []
-		# 	xdata = []
-		# 	ydata = []
-		# 	zdata = []
-		# 	size = []
-		# 	output = {}
-		# 	outarr = []
-		# 	stuff.each do |x|
-		# 		timedata.push(x.time)
-		# 		xdata.push(x.xdata)
-		# 		ydata.push(x.ydata)
-		# 		zdata.push(x.zdata)
-		# 		size.push(2)
-		# 		output[x.time] = x.zdata
-		# 		arr = []
-		# 		arr.push([x.time.to_f,x.zdata.to_f])
-		# 		outarr.push(arr)
-		# 	end
-
-
-		# 	name = :name.to_s
-			# filename = '/img/' + name + '.png'
-			# mod_filename = 'public/' + filename
-
-			# line_chart = Gchart.new(
-		 #            :type => 'line_xy',
-		 #            :size => '600x400',
-		 #            # :line_colors => ['000000', '0088FF', 'FF0000'],
-		 #            :title => "Treadmill usage",
-		 #            :bg => 'EFEFEF',
-		 #            # :legend => ['xdata', 'ydata', 'zdata'],
-		 #            # :legend_position => 'bottom',
-		 #            # :data => [[timedata,xdata], [timedata,ydata], [timedata, zdata] ],
-		 #            :data => [timedata, zdata],
-		 #            :filename => mod_filename,
-		 #            :axis_with_labels => [['x'], ['y']]
-		 #            )
-
-			# line_chart.file
-
-			# @count,@timetotal = process_data(get_vars(stuff))
-
-
-			# @images  = [filename]
-
-			@machine = params[:name]
-			@dropdown = Machine.select('DISTINCT category')
-
-  			@table = helper_table
-
-  			@count_table, @time_table = bar_chart_machine(params[:name].downcase, 'count_bar', 'time_bar')
-
-			erb :data
-		# end
+		erb :data
 	end
 
 
 	get '/machines' do 
-		@table = helper_table
 		@images = helper_images
 		@machine = "machines"
 		@dropdown = Machine.select('DISTINCT category')
+		cats = []
+		@dropdown.each do |m|
+			cats.push(m.category)
+		end
+		options = {showRowNumber: true }
+		@table = helper_table(cats, 'table_div', options)
 		erb :data
 	end
 
@@ -184,7 +150,6 @@ class Protected < Sinatra::Base
 		@models = Model.all 
 		erb :models
 	end
-
 
 	post '/process' do 
 		CSV.foreach(params[:file][:tempfile]) do |row|
@@ -313,30 +278,44 @@ class Protected < Sinatra::Base
 
 	end
 
-
-	def helper_table 
-		@data_arr = []
-		cats = Machine.select('DISTINCT category')
-		cats.each do |machine|
-			name = machine.category
-			dat = Machine.all.where({ category: name}).order('time ASC')
-			count,time = process_data(get_vars(dat))
-			tmp = [name, count, time]
-			@data_arr.push(tmp)
+	def helper_table(cats, css_id, options)
+		data= []
+		if cats.length == 1
+			cats.each do |cat|
+				dat = Memo.all.where({category: cat}).order('time ASC')
+				dat.each do |d|
+					data.push(format(d))
+				end
+			end
+		else
+			cats.each do |cat|
+				dat = Memo.all.where({category: cat}).order('date DESC').first
+				data.push(format(dat))
+			end
 		end
 
-		@table = Gtable.new
-		@table.add_column('string', 'Machine')
-		@table.add_column('number', 'Count')
-		@table.add_column('number', 'Time in use')
-		@table.set_cssid('table_div')
-		@table.add_rows(@data_arr)
+		table = Gtable.new
+		table.add_column('string', 'Machine')
+		table.add_column('string', 'Date')
+		table.add_column('number', 'Count')
+		table.add_column('number', 'Time in use')
+		table.set_cssid(css_id)
+		table.options = options
+		table.add_rows(data)
 
-		return @table
+		return table
 	end
+		
+	def format(memo)
+		arr = [memo.category, memo.date, memo.count, memo.time]
+		return arr
+	end	
 
 	def helper_images
 		@images = []
+
+		#REGEX MAGIC: remove the public portion of the filename as sinatra
+		#automagically looks in /public for static files
 		Dir.glob('public/img/machines/*.jpg') do |file|
 			re = /public\/(\S+)/
 			match = file.match(re)

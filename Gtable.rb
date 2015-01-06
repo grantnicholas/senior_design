@@ -1,4 +1,11 @@
 class Gtable
+
+	attr_accessor :columns
+	attr_accessor :rows
+	attr_accessor :id
+	attr_accessor :show_num
+	attr_accessor :options
+
 	def initialize()	
 		@columns = []
 		@rows    = []
@@ -26,26 +33,6 @@ class Gtable
 
 	def add_options(ops)
 		@options = ops
-	end
-
-	def columns
-		return @columns
-	end
-
-	def rows
-		return @rows
-	end
-
-	def id
-		return @id
-	end
-
-	def show_num
-		return @show_num
-	end
-
-	def options
-		return @options
 	end
 
 end
