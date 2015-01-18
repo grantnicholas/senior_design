@@ -30,8 +30,8 @@ class Public < Sinatra::Base
 	end
 
 	post '/upload' do
-		p params.inspect
-		p params
+		#p params.inspect
+		#p params
 		p request.body.read
 		# p params[:file][:tempfile]
 		# CSV.foreach(params[:file][:tempfile]) do |row|
