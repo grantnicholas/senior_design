@@ -30,15 +30,61 @@ class Public < Sinatra::Base
 	end
 
 	post '/upload' do
-		p params.inspect
-		p params
-		p request.body.read
-		# p params[:file][:tempfile]
-		# CSV.foreach(params[:file][:tempfile]) do |row|
-		# 	if !row.empty? 
-		# 		p row
-		# 	end
-		# end
+		#p params.inspect
+		#p params
+		thestring = request.body.read
+
+		@model = Machine.new
+
+		dacount    = 0
+		dacategory = nil
+		dadate     = nil
+		CSV.parse(thestring) do |row|
+			if dacount ==0
+				dacategory = row[0].downcase
+				dadate     = row[1]
+				dacount +=1
+			elsif !row.empty?
+				@model = Machine.new
+				@model.category = dacategory.downcase
+				@model.date     = dadate
+				@model.time  = row[0]
+				@model.xdata = row[1]
+				@model.ydata = row[2]
+				@model.zdata = row[3]
+				@model.save 
+				p 'data start'
+				p row[0]
+				p row[1]
+				p row[2]
+				p row[3]
+				p 'data end'
+			end
+		end
+		puts dacategory
+		puts dadate
+
+		stuff = Machine.all.where({category: dacategory.downcase, date: dadate}).order("time ASC")
+
+		stuff.each do |s|
+			p s
+		end
+		if stuff == nil
+			redirect '/process'
+		end
+
+		thecount,thetime = process_data(get_vars(stuff))
+
+		if !Memo.exists?({category: dacategory, date: dadate }) 
+			m = Memo.new
+			m.category = dacategory
+			m.count = thecount
+			m.time = thetime
+			m.date = dadate
+			m.save
+		end
+
+
 		erb :upload
 	end
 
@@ -89,7 +135,167 @@ class Public < Sinatra::Base
 			@message = "Incorrect login information"
 			erb :login
 		end
+
 	end
+
+
+	def mean(x)
+		sum = 0.0
+		x.each do |v|
+			sum += v
+		end
+
+		sum = sum/x.size
+		return sum
+	end
+
+	def stdev(x)
+		m = mean(x)
+		sum = 0.0
+		x.each do |v|
+			sum+= (v-m)**2
+		end
+		return Math.sqrt(sum/x.size)
+	end
+
+	def get_vars(stuff)
+		timedata = []
+		zdata = []
+		stuff.each do |x|
+			timedata.push(x.time)
+			zdata.push(x.zdata)
+		end
+		return timedata,zdata
+	end
+
+		
+	def process_data(stuff)
+
+		t,z = stuff
+		z_cut_up = mean(z) + stdev(z)
+		z_cut_down = mean(z) - stdev(z)
+
+
+		time_total =0
+		time_start =0
+		i_start    =1
+		i_recent   =1
+		time_recent =0
+		time_cut   = 5
+		top_cut    =z_cut_up
+		bot_cut    =z_cut_down
+		count = 0;
+
+		(0...z.size).each do |i|
+		    if (z[i]> top_cut || z[i] < bot_cut) 
+		        if t[i] - time_recent> time_cut
+		            if time_recent - time_start > time_cut #%time_cut
+		                count = count+1
+		            end
+		            time_total = time_total + (time_recent-time_start);
+		            time_start =t[i]
+		            i_start    =i
+		            time_recent =t[i]
+		        else
+		            time_recent = t[i]
+		            i_recent    = i
+		        end
+		    end
+		end
+
+		count = count+1
+		if time_recent != 0
+			time_total = time_total + (time_recent-time_start)
+		end
+
+
+		return count, time_total
+
+	end
+
+	def helper_table(cats, css_id, options)
+		data= []
+		if cats.length == 1
+			cats.each do |cat|
+				dat = Memo.all.where({category: cat}).order('time ASC')
+				dat.each do |d|
+					data.push(format(d))
+				end
+			end
+		else
+			cats.each do |cat|
+				dat = Memo.all.where({category: cat}).order('date DESC').first
+				data.push(format(dat))
+			end
+		end
+
+		table = Gtable.new
+		table.add_column('string', 'Machine')
+		table.add_column('string', 'Date')
+		table.add_column('number', 'Count')
+		table.add_column('number', 'Time in use')
+		table.set_cssid(css_id)
+		table.options = options
+		table.add_rows(data)
+
+		return table
+	end
+		
+	def format(memo)
+		arr = [memo.category, memo.date, memo.count, memo.time]
+		return arr
+	end	
+
+	def helper_images
+		@images = []
+
+		#REGEX MAGIC: remove the public portion of the filename as sinatra
+		#automagically looks in /public for static files
+		Dir.glob('public/img/machines/*.jpg') do |file|
+			re = /public\/(\S+)/
+			match = file.match(re)
+ 	 		@images.push(match[1])
+		end
+		return @images
+	end
+
+	def bar_chart_machine(category, c_id, t_id)
+		count_arr = []
+		time_arr = []
+		data = Memo.all.where({category: category}).order('date ASC')
+		data.each do |d|
+			ctmp = [d.date, d.count]
+			ttmp = [d.date, d.time]
+			count_arr.push(ctmp)
+			time_arr.push(ttmp)
+		end
+
+		count_table = Gtable.new
+		count_table.add_column('string', 'Date')
+		count_table.add_column('number', 'Count')
+		count_table.set_cssid(c_id)
+		count_table.add_rows(count_arr)
+		count_table.add_options({
+    		title: category,
+    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
+  		})
+
+  		time_table = Gtable.new
+		time_table.add_column('string', 'Date')
+		time_table.add_column('number', 'Time')
+		time_table.set_cssid(t_id)
+		time_table.add_rows(time_arr)
+		time_table.add_options({
+    		title: category,
+    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
+  		})
+
+
+		return count_table, time_table
+
+
+	end
+
 
 end
 
