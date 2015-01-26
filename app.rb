@@ -48,7 +48,7 @@ class Public < Sinatra::Base
 				@model = Machine.new
 				@model.category = dacategory.downcase
 				@model.date     = dadate
-				@model.time  = row[0]
+				@model.time  = row[0]/1000
 				@model.xdata = row[1]
 				@model.ydata = row[2]
 				@model.zdata = row[3]
@@ -181,7 +181,7 @@ class Public < Sinatra::Base
 		i_start    =1
 		i_recent   =1
 		time_recent =0
-		time_cut   = 5
+		time_cut   = 5 #5000 in ms
 		top_cut    =z_cut_up
 		bot_cut    =z_cut_down
 		count = 0;
