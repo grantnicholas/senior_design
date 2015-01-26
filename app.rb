@@ -48,7 +48,7 @@ class Public < Sinatra::Base
 				@model = Machine.new
 				@model.category = dacategory.downcase
 				@model.date     = dadate
-				@model.time  = row[0]/1000
+				@model.time  = row[0].to_f/1000
 				@model.xdata = row[1]
 				@model.ydata = row[2]
 				@model.zdata = row[3]
