@@ -176,12 +176,15 @@ class Public < Sinatra::Base
 		z_cut_down = mean(z) - stdev(z)
 
 
+		#time_cut = {}
+		#time_cut["treadmill"] = 3
+		#time_cut["jars"]      = 1
 		time_total =0
 		time_start =0
 		i_start    =1
 		i_recent   =1
 		time_recent =0
-		time_cut   = 5 #5000 in ms
+		time_cut   = 1 #5000 in ms
 		top_cut    =z_cut_up
 		bot_cut    =z_cut_down
 		count = 0;
