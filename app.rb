@@ -163,7 +163,7 @@ class Public < Sinatra::Base
 		zdata = []
 		stuff.each do |x|
 			timedata.push(x.time)
-			zdata.push(x.zdata)
+			zdata.push(x.xdata)  #zdata
 		end
 		return timedata,zdata
 	end
