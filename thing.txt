@@ -1,0 +1,80 @@
+if(client.connected()){
+      Serial.println("connected");
+      
+      int clientCount = 0;
+      char tBuf[65];
+
+      String fileName = "testdata.txt";
+      char bufff[fileName.length() +1];
+      fileName.toCharArray(bufff, fileName.length() +1);
+      File myFile = SD.open(bufff);
+      
+      if(!myFile) {
+        Serial.println(F("open error"));
+      }
+      else {
+        
+        unsigned long fileSize = myFile.size();
+        
+        Serial.print(F("size = "));
+        Serial.print(fileSize);
+        Serial.println(F(" bytes"));
+        
+        
+        Serial.println("");
+        Serial.println(F("POST /upload HTTP/1.1"));
+        Serial.println(F("Content-Type: text/plain"));
+        Serial.println(F("Host: kinetikloud.herokuapp.com"));
+        Serial.println(F("Cache-Control: no-cache"));
+        Serial.print(F("Content-Length: ")); 
+        Serial.println("");
+        
+        delay(500);
+        // send the Content-Length and the rest of your request header here
+        client.fastrprintln(F("POST /upload HTTP/1.1"));
+        client.fastrprintln(F("Content-Type: text/plain"));
+        client.fastrprintln(F("Host: kinetikloud.herokuapp.com"));
+        client.fastrprintln(F("Cache-Control: no-cache"));
+        client.fastrprint(F("Content-Length: ")); 
+        client.println(fileSize);
+        client.println("");
+        
+        
+          char tBuf[65];
+          int client_count = 0;
+          
+         while(myFile.available()){
+           tBuf[client_count] = myFile.read();
+           client_count++;
+           tBuf[client_count] = 0;
+           
+           if(client_count > 63){
+            client.write((byte*)tBuf,64);
+            Serial.write((byte*)tBuf,64);
+            client_count = 0;
+           }
+           delay(5); //weird hanging
+         }
+         if(client_count >0){
+          client.write((byte*)tBuf, client_count); 
+          Serial.write((byte*)tBuf, client_count);
+         }
+         client.fastrprintln("");
+         
+        wdt_disable();
+        watchdogEnable();
+        char c = 0;
+        int q = 0;
+        while ( q < 50 || client.available() > 0 ) {
+                c = client.read();
+                q++;
+                Serial.print( c );
+        }
+        wdt_disable();
+        wdt_enable(WDTO_8S);
+        // close the file
+        myFile.close();
+      }
+    
+    return true;
+  } 

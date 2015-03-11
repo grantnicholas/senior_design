@@ -69,3 +69,7 @@ h1 {
 	margin-top: 5px;
 	width: 100%;
 }
+
+.google-visualization-table-table{
+	min-width: 100%;
+}
