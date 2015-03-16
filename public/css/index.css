@@ -1,6 +1,6 @@
-.examples{
+.about{
 	background-color: #27272B;
-	min-height: 50%;
+	min-height: 75%;
 }
 
 .landing-image{
@@ -19,6 +19,16 @@
 h1 {
 	font-size: 150px;
 	color: white;
+}
+
+h2 {
+	font-size: 60px;
+	color: white;
+}
+
+h3 {
+	font-size: 60px;
+	color: black;
 }
 
 .highlight-it img{
@@ -72,4 +82,16 @@ h1 {
 
 .google-visualization-table-table{
 	min-width: 100%;
+}
+
+.profile{
+	margin-top: 25%;
+	margin-bottom: 25%;
+	border-radius: 100px;
+}
+
+figcaption{
+	color: white;
+	font-weight: bold;
+	font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
 }

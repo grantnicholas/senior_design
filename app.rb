@@ -7,6 +7,7 @@ require 'csv'
 require 'bcrypt'
 require 'chartkick'
 require 'google_visualr'
+require 'pony'
 load 'Gtable.rb'
 
 
@@ -25,6 +26,27 @@ class Public < Sinatra::Base
 		erb :about
 	end
 
+	post '/mail' do
+		p params
+		Pony.mail :to => 'grantnicholas2015@u.northwestern.edu',
+				  :from => params[:email],
+				  :subject => 'A message from a kinetikloud user',
+				  :body => params[:comments],
+				  :via => :smtp,
+				  :via_options =>{
+				  	:address => 'smtp.sendgrid.net',
+				  	:port => 587,
+				  	:enable_starttls_auto => true,
+				  	:user_name => 'kinetikloud',
+				  	:password =>'badhatharry69',
+				  	:authentication => :plain,
+				  	:domain => 'HELO'
+				  }
+		@error   = false
+		@message = "Your email was sent successfully"
+		erb :login
+	end
+
 	get '/upload' do
 		erb :upload
 	end
@@ -33,7 +55,7 @@ class Public < Sinatra::Base
 		#p params.inspect
 		#p params
 		thestring = request.body.read
-
+		p thestring
 		@model = Machine.new
 
 		dacount    = 0
@@ -327,7 +349,6 @@ class Protected < Sinatra::Base
 			halt erb :login
 		end
 	end
-
 
 	get '/logout' do 
 		session[:user] = nil
