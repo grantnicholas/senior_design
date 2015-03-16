@@ -12,4 +12,4 @@ gem 'bcrypt'
 gem 'thin'
 gem 'chartkick'
 gem "google_visualr", ">= 2.1"
-
+gem 'pony'
