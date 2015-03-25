@@ -1,6 +1,6 @@
-.about{
+#about{
 	background-color: #27272B;
-	min-height: 75%;
+	min-height: 50%;
 }
 
 .landing-image{
@@ -12,8 +12,12 @@
 	min-height: 20%;
 }
 
-#main{
+#contact{
 	min-height: 50%;
+}
+
+body{
+	height: auto;
 }
 
 h1 {
@@ -22,12 +26,13 @@ h1 {
 }
 
 h2 {
-	font-size: 60px;
+	font-size: 50px;
 	color: white;
+	padding-top: 2%;
 }
 
 h3 {
-	font-size: 60px;
+	font-size: 50px;
 	color: black;
 }
 
@@ -94,4 +99,16 @@ figcaption{
 	color: white;
 	font-weight: bold;
 	font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+}
+
+figcaption > div.flname{
+	font-size: inherit;
+}
+figcaption > div.role{
+	font-size: 13px;
+}
+
+.sticky{
+	position: fixed;
+	z-index: 2;
 }
