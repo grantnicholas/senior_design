@@ -112,3 +112,7 @@ figcaption > div.role{
 	position: fixed;
 	z-index: 2;
 }
+
+.button-login{
+	margin-top: 8%;
+}
