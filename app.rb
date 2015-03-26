@@ -17,6 +17,7 @@ class Public < Sinatra::Base
 
 	enable :sessions
 	set :session_secret, 'super secret'
+	set :protection, :except => :frame_options
 
 	get '/' do
 		erb :index
