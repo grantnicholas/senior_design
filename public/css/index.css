@@ -1,7 +1,40 @@
+/*
+Override foundation styles
+*/
+/*.row{
+	max-width: 80rem !important;
+}*/
+.fakerow{
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 1%;
+  padding-bottom: 1%;
+  max-width: 80rem;
+}
+
 #about{
 	background-color: #27272B;
+	min-height: 70%;
+}
+
+#main{
+	background-color: #88ccff;
 	min-height: 50%;
 }
+ 
+.ol >li{
+	color: white;
+	font-weight: bold;
+	font-size: 30px;
+	-webkit-text-stroke: 1px black;
+}
+
+/* LIST #2 */
+#list2 ol { font-style:italic; font-family:Georgia, Times, serif; font-size:24px; color:#bfe1f1;  }
+#list2 ol li { }
+#list2 ol li p { padding:8px; font-style:normal; font-family:Arial; font-size:26px; color:#eee; border-left: 1px solid #999; }
+#list2 ol li p em { display:block; }
 
 .landing-image{
 	background-color: #0099FF;
@@ -26,6 +59,7 @@ h1 {
 }
 
 h2 {
+/*	-webkit-text-stroke: 1px black;*/
 	font-size: 50px;
 	color: white;
 	padding-top: 2%;
@@ -116,3 +150,9 @@ figcaption > div.role{
 .button-login{
 	margin-top: 8%;
 }
+
+/*#ytvids > li{
+	margin-left: 1%;
+	margin-right: 1%;
+}
+*/
