@@ -8,6 +8,8 @@ require 'bcrypt'
 require 'chartkick'
 require 'google_visualr'
 require 'pony'
+require 'date'
+
 load 'Gtable.rb'
 
 
@@ -45,71 +47,33 @@ class Public < Sinatra::Base
 		erb :login
 	end
 
-	get '/upload' do
-		erb :upload
-	end
 
-	post '/upload' do
-		#p params.inspect
-		#p params
+	post '/upload_memo' do 
 		thestring = request.body.read
 		p thestring
-		@model = Machine.new
 
-		dacount    = 0
-		dacategory = nil
-		dadate     = nil
+		lookup = {}
 		CSV.parse(thestring) do |row|
-			if dacount ==0
-				dacategory = row[0].downcase
-				dadate     = row[1]
-				dacount +=1
-			elsif !row.empty?
-				@model = Machine.new
-				@model.category = dacategory.downcase
-				@model.date     = dadate
-				@model.time  = row[0].to_f/1000
-				@model.xdata = row[1]
-				@model.ydata = row[2]
-				@model.zdata = row[3]
-				@model.save 
-				p 'data start'
-				p row[0]
-				p row[1]
-				p row[2]
-				p row[3]
-				p 'data end'
-			end
+			key,val = row
+			lookup[key] = val
 		end
-		puts dacategory
-		puts dadate
+		p lookup
 
-		stuff = Machine.all.where({category: dacategory.downcase, date: dadate}).order("time ASC")
-
-		stuff.each do |s|
-			p s
-		end
-		if stuff == nil
-			redirect '/process'
-		end
-
-		thecount,thetime = process_data(get_vars(stuff))
-
-		if !Memo.exists?({category: dacategory, date: dadate }) 
+		if !Memo.exists?({
+					category: lookup["name"],  
+					date: lookup["date"]}) 
 			m = Memo.new
-			m.category = dacategory
-			m.count = thecount
-			m.time = thetime
-			m.date = dadate
+			m.category = lookup["name"].downcase
+			m.count = 0
+			m.time = lookup["time"]
+			m.date = DateTime.strptime(lookup["date"], '%m/%d/%Y')
+			p m
 			m.save
 		end
-
-
-		erb :upload
 	end
 
+
 	get '/login' do 
-		# erb :login, :layout => :login_layout
 		if session[:user]
 			redirect '/logout'
 		else	
@@ -158,168 +122,6 @@ class Public < Sinatra::Base
 
 	end
 
-
-	def mean(x)
-		sum = 0.0
-		x.each do |v|
-			sum += v
-		end
-
-		sum = sum/x.size
-		return sum
-	end
-
-	def stdev(x)
-		m = mean(x)
-		sum = 0.0
-		x.each do |v|
-			sum+= (v-m)**2
-		end
-		return Math.sqrt(sum/x.size)
-	end
-
-	def get_vars(stuff)
-		timedata = []
-		zdata = []
-		stuff.each do |x|
-			timedata.push(x.time)
-			zdata.push(x.xdata)  #zdata
-		end
-		return timedata,zdata
-	end
-
-		
-	def process_data(stuff)
-
-		t,z = stuff
-		z_cut_up = mean(z) + stdev(z)
-		z_cut_down = mean(z) - stdev(z)
-
-
-		#time_cut = {}
-		#time_cut["treadmill"] = 3
-		#time_cut["jars"]      = 1
-		time_total =0
-		time_start =0
-		i_start    =1
-		i_recent   =1
-		time_recent =0
-		time_cut   = 1 #5000 in ms
-		top_cut    =z_cut_up
-		bot_cut    =z_cut_down
-		count = 0;
-
-		(0...z.size).each do |i|
-		    if (z[i]> top_cut || z[i] < bot_cut) 
-		        if t[i] - time_recent> time_cut
-		            if time_recent - time_start > time_cut #%time_cut
-		                count = count+1
-		            end
-		            time_total = time_total + (time_recent-time_start);
-		            time_start =t[i]
-		            i_start    =i
-		            time_recent =t[i]
-		        else
-		            time_recent = t[i]
-		            i_recent    = i
-		        end
-		    end
-		end
-
-		count = count+1
-		if time_recent != 0
-			time_total = time_total + (time_recent-time_start)
-		end
-
-
-		return count, time_total
-
-	end
-
-	def helper_table(cats, css_id, options)
-		data= []
-		if cats.length == 1
-			cats.each do |cat|
-				dat = Memo.all.where({category: cat}).order('time ASC')
-				dat.each do |d|
-					data.push(format(d))
-				end
-			end
-		else
-			cats.each do |cat|
-				dat = Memo.all.where({category: cat}).order('date DESC').first
-				data.push(format(dat))
-			end
-		end
-
-		table = Gtable.new
-		table.add_column('string', 'Machine')
-		table.add_column('string', 'Date')
-		table.add_column('number', 'Count')
-		table.add_column('number', 'Time in use')
-		table.set_cssid(css_id)
-		table.options = options
-		table.add_rows(data)
-
-		return table
-	end
-		
-	def format(memo)
-		arr = [memo.category, memo.date, memo.count, memo.time]
-		return arr
-	end	
-
-	def helper_images
-		@images = []
-
-		#REGEX MAGIC: remove the public portion of the filename as sinatra
-		#automagically looks in /public for static files
-		Dir.glob('public/img/machines/*.jpg') do |file|
-			re = /public\/(\S+)/
-			match = file.match(re)
- 	 		@images.push(match[1])
-		end
-		return @images
-	end
-
-	def bar_chart_machine(category, c_id, t_id)
-		count_arr = []
-		time_arr = []
-		data = Memo.all.where({category: category}).order('date ASC')
-		data.each do |d|
-			ctmp = [d.date, d.count]
-			ttmp = [d.date, d.time]
-			count_arr.push(ctmp)
-			time_arr.push(ttmp)
-		end
-
-		count_table = Gtable.new
-		count_table.add_column('string', 'Date')
-		count_table.add_column('number', 'Count')
-		count_table.set_cssid(c_id)
-		count_table.add_rows(count_arr)
-		count_table.add_options({
-    		title: category,
-    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
-  		})
-
-  		time_table = Gtable.new
-		time_table.add_column('string', 'Date')
-		time_table.add_column('number', 'Time')
-		time_table.set_cssid(t_id)
-		time_table.add_rows(time_arr)
-		time_table.add_options({
-    		title: category,
-    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
-  		})
-
-
-		return count_table, time_table
-
-
-	end
-
-
 end
 
 class Protected < Sinatra::Base
@@ -357,19 +159,23 @@ class Protected < Sinatra::Base
 
 	get '/machines/:name' do 
 		@machine = params[:name]
-		@dropdown = Machine.select('DISTINCT category')
+		p @machine
+		@dropdown = Memo.select('DISTINCT category')
 		options = {showRowNumber: true }
 		@table = helper_table([@machine], 'table_div', options)
-		@count_table, @time_table = bar_chart_machine(params[:name].downcase, 'count_bar', 'time_bar')
+		@time_table = bar_chart_machine(params[:name].downcase, 'time_bar')
 
+		p @table 
+		p @time_table 
 		erb :data
 	end
 
 
 	get '/machines' do 
-		@images = helper_images
+		# @images = helper_images
+		@images = []
 		@machine = "machines"
-		@dropdown = Machine.select('DISTINCT category')
+		@dropdown = Memo.select('DISTINCT category')
 		cats = []
 		@dropdown.each do |m|
 			cats.push(m.category)
@@ -390,138 +196,15 @@ class Protected < Sinatra::Base
 		erb :models
 	end
 
-	post '/process' do 
-		CSV.foreach(params[:file][:tempfile]) do |row|
-			if !row.empty? 
-				@model = Machine.new
-				@model.category  = params[:model][:category]
-				@model.time  = row[0]
-				@model.xdata = row[1]
-				@model.ydata = row[2]
-				@model.zdata = row[3]
-				@model.date  = params[:model][:date]
-				@model.save
-			end
-		end
-
-		stuff = 0
-		category = 0
-		@cats = Machine.select('DISTINCT category')
-		@cats.each do |t|
-			puts t.get_category
-			puts params[:model][:category].downcase
-			if t.get_category.downcase==params[:model][:category].downcase
-				category = t.get_category
-				stuff = Machine.all.where({category: t.get_category, date: params[:model][:date]}).order("time ASC")
-			end
-		end
-
-		stuff.each do |s|
-			p s
-		end
-		if stuff == 0
-			redirect '/process'
-		end
-
-		thecount,thetime = process_data(get_vars(stuff))
-
-		if !Memo.exists?({category: category, date: params[:model][:date] }) 
-			m = Memo.new
-			m.category = category
-			m.count = thecount
-			m.time = thetime
-			m.date = params[:model][:date]
-			m.save
-		end
-		# Memo.create({type: type, count: thecount, time: thetime, date: params[:model][:date]})
-
-		# Memo.where({type: type}).update_all("count = count + #{thecount}" )
-		# Memo.where({type: type}).update_all("time = time + #{thetime}" )
-
-
-
-	end
-
-
-	def mean(x)
-		sum = 0.0
-		x.each do |v|
-			sum += v
-		end
-
-		sum = sum/x.size
-		return sum
-	end
-
-	def stdev(x)
-		m = mean(x)
-		sum = 0.0
-		x.each do |v|
-			sum+= (v-m)**2
-		end
-		return Math.sqrt(sum/x.size)
-	end
-
-	def get_vars(stuff)
-		timedata = []
-		zdata = []
-		stuff.each do |x|
-			timedata.push(x.time)
-			zdata.push(x.zdata)
-		end
-		return timedata,zdata
-	end
-
-		
-	def process_data(stuff)
-
-		t,z = stuff
-		z_cut_up = mean(z) + stdev(z)
-		z_cut_down = mean(z) - stdev(z)
-
-
-		time_total =0
-		time_start =0
-		i_start    =1
-		i_recent   =1
-		time_recent =0
-		time_cut   = 5
-		top_cut    =z_cut_up
-		bot_cut    =z_cut_down
-		count = 0;
-
-		(0...z.size).each do |i|
-		    if (z[i]> top_cut || z[i] < bot_cut) 
-		        if t[i] - time_recent> time_cut
-		            if time_recent - time_start > time_cut #%time_cut
-		                count = count+1
-		            end
-		            time_total = time_total + (time_recent-time_start);
-		            time_start =t[i]
-		            i_start    =i
-		            time_recent =t[i]
-		        else
-		            time_recent = t[i]
-		            i_recent    = i
-		        end
-		    end
-		end
-
-		count = count+1
-		if time_recent != 0
-			time_total = time_total + (time_recent-time_start)
-		end
-
-
-		return count, time_total
-
-	end
-
 	def helper_table(cats, css_id, options)
+		p "cats"
+		p cats
 		data= []
 		if cats.length == 1
 			cats.each do |cat|
 				dat = Memo.all.where({category: cat}).order('time ASC')
+				p 'datt'
+				p dat
 				dat.each do |d|
 					data.push(format(d))
 				end
@@ -536,8 +219,8 @@ class Protected < Sinatra::Base
 		table = Gtable.new
 		table.add_column('string', 'Machine')
 		table.add_column('string', 'Date')
-		table.add_column('number', 'Count')
-		table.add_column('number', 'Time in use')
+		# table.add_column('number', 'Count')
+		table.add_column('number', 'Time in use [min]')
 		table.set_cssid(css_id)
 		table.options = options
 		table.add_rows(data)
@@ -546,7 +229,8 @@ class Protected < Sinatra::Base
 	end
 		
 	def format(memo)
-		arr = [memo.category, memo.date, memo.count, memo.time]
+		arr = [memo.category, memo.date.strftime("%m-%d-%Y"), (memo.time/60.0).round(2)]
+		p arr
 		return arr
 	end	
 
@@ -563,30 +247,20 @@ class Protected < Sinatra::Base
 		return @images
 	end
 
-	def bar_chart_machine(category, c_id, t_id)
-		count_arr = []
+	def bar_chart_machine(category, t_id)
+		# count_arr = []
 		time_arr = []
 		data = Memo.all.where({category: category}).order('date ASC')
 		data.each do |d|
-			ctmp = [d.date, d.count]
-			ttmp = [d.date, d.time]
-			count_arr.push(ctmp)
+			# ctmp = [d.date, d.count]
+			ttmp = [d.date.strftime("%m-%d-%Y"), (d.time/60.0).round(2)]
+			# count_arr.push(ctmp)
 			time_arr.push(ttmp)
 		end
 
-		count_table = Gtable.new
-		count_table.add_column('string', 'Date')
-		count_table.add_column('number', 'Count')
-		count_table.set_cssid(c_id)
-		count_table.add_rows(count_arr)
-		count_table.add_options({
-    		title: category,
-    		hAxis: {title: 'Date', titleTextStyle: {color: 'red'}}
-  		})
-
   		time_table = Gtable.new
 		time_table.add_column('string', 'Date')
-		time_table.add_column('number', 'Time')
+		time_table.add_column('number', 'Time in use[min]')
 		time_table.set_cssid(t_id)
 		time_table.add_rows(time_arr)
 		time_table.add_options({
@@ -595,7 +269,7 @@ class Protected < Sinatra::Base
   		})
 
 
-		return count_table, time_table
+		return time_table
 
 
 	end

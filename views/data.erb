@@ -44,30 +44,30 @@
             'height': 900,
             'legend': 'right'
           },
-          'view': {'columns': [0,3]}
-        });
-
-        var barChartCount = new google.visualization.ChartWrapper({
-          'chartType': 'ColumnChart',
-          'containerId': 'charting_div_count',
-          'options': {
-            'width': 900,
-            'height': 900,
-            'legend': 'right'
-          },
           'view': {'columns': [0,2]}
         });
 
+        // var barChartCount = new google.visualization.ChartWrapper({
+        //   'chartType': 'ColumnChart',
+        //   'containerId': 'charting_div_count',
+        //   'options': {
+        //     'width': 900,
+        //     'height': 900,
+        //     'legend': 'right'
+        //   },
+        //   'view': {'columns': [0,2]}
+        // });
+
         dashboard.bind(catSlider, barChartTime );
-        dashboard.bind(catSlider, barChartCount);
+        // dashboard.bind(catSlider, barChartCount);
 
         dashboard.draw(data);
 
-        $('#charting_div_count').toggle();
+        // $('#charting_div_count').toggle();
         jQuery('#dashboard_toggle').click(function(){
           console.log('clicked');
           jQuery('#charting_div_time').toggle();
-          jQuery('#charting_div_count').toggle();
+          // jQuery('#charting_div_count').toggle();
         });
 
       }
@@ -81,7 +81,6 @@
    <%= table_chart(@table) %>
    <% if @machine != "machines" %>
    <%= bar_chart(@time_table) %>
-   <%= bar_chart(@count_table) %>
    <% end %>
 
 </div>
@@ -127,10 +126,10 @@
     <% if @images %>
     <div class="row">
     	<div id="dashboard_div">
-          <button id="dashboard_toggle">toggle time and count</button>
+          <!-- <button id="dashboard_toggle">toggle time and count</button> -->
       		<div id="filtering_div"></div>
       		<div id="charting_div_time"></div>
-          <div id="charting_div_count"></div>
+<!--           <div id="charting_div_count"></div> -->
     	</div>
 	</div>
 	<div class="row">
