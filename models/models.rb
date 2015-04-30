@@ -14,14 +14,19 @@ end
 
 class User < ActiveRecord::Base
 
-	def check_password(pass)
-		self.password ||= BCrypt::Password.create(pass)
-	end
+
+    def check_password(str)
+      if BCrypt::Password.new(self.password) == str 
+      	return true
+      else
+      	return false
+      end
+    end
 
 	def set_password(new_password)
-		@password = BCrypt::Password.create(new_password)
-		self.password = @password
-	end
+      self.password = BCrypt::Password.create(new_password)
+    end
+
 end
 
 class Memo < ActiveRecord::Base

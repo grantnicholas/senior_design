@@ -106,15 +106,20 @@ class Public < Sinatra::Base
 
 	post '/login' do 
 		@user = User.find_by_email(params[:email])
-		if !@user
+		if !@user or !params[:password]
+			p "not right"
 			@error = true
 			@message = "Incorrect username"
 			erb :login
 
 		elsif @user.check_password(params[:password])
+			p "shit"
 			session[:user] = params[:email]
 			redirect '/machines'
 		else
+			p @user.check_password(params[:password])
+			p @user.check_password("poop")
+			p "fuck"
 			@error = true
 			@message = "Incorrect login information"
 			erb :login
